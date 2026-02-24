@@ -792,45 +792,306 @@ function wizBuildFallback(destination, days, cityData) {
 }
 
 function wizRenderResults(plan, destination, duration) {
-    // Hide all panels, step bar, footer nav — show result
     document.querySelectorAll('.wiz-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('wizStepBar').style.display = 'none';
     document.getElementById('wizResultPanel').classList.add('active');
 
     const total = Object.values(plan.budget || {}).reduce((a, b) => a + b, 0);
     const people = wizState.adults + wizState.children;
+    const budgetLabel = { budget: 'Budget 🎒', normal: 'Mid-Range ✈️', luxury: 'Luxury 👑' }[wizState.budget] || '';
+    const foodLabel = { veg: '🥗 Veg', nonveg: '🍗 Non-Veg', both: '🍱 All Food' }[wizState.food] || '';
+
     document.getElementById('wizResultTitle').textContent = `Your ${plan.city || destination} Plan ✦`;
     document.getElementById('wizResultSubtitle').textContent =
-        `${duration} days · ${wizState.budget} budget · ${people} traveller${people > 1 ? 's' : ''}`;
+        `${duration} days · ${budgetLabel} · ${people} traveller${people > 1 ? 's' : ''}`;
+
+    // Budget bar percentages
+    const bTotal = total || 1;
+    const bPct = (v) => Math.round(((v || 0) / bTotal) * 100);
 
     document.getElementById('wizResultCards').innerHTML = `
-    <div class="result-card"><h4>🏛️ Famous Places</h4><ul>${(plan.famous || []).map(p => `<li>${p}</li>`).join('')}</ul></div>
-    <div class="result-card"><h4>💎 Hidden Gems</h4><ul>${(plan.hidden || []).map(p => `<li>${p}</li>`).join('')}</ul></div>
-    <div class="result-card"><h4>🍜 Must-Try Food</h4><ul>${(plan.food || []).map(f => `<li>${f.name} <span style="color:var(--lc);margin-left:auto">${f.price || ''}</span></li>`).join('')}</ul></div>
-    <div class="result-card"><h4>💰 Budget Breakdown</h4>
-      <div class="budget-breakdown">
-        <div class="budget-row"><span>🏨 Accommodation</span><span>₹${(plan.budget?.accommodation || 0).toLocaleString()}</span></div>
-        <div class="budget-row"><span>🍽️ Food</span><span>₹${(plan.budget?.food || 0).toLocaleString()}</span></div>
-        <div class="budget-row"><span>🚗 Transport</span><span>₹${(plan.budget?.transport || 0).toLocaleString()}</span></div>
-        <div class="budget-row"><span>🎭 Activities</span><span>₹${(plan.budget?.activities || 0).toLocaleString()}</span></div>
-        <div class="budget-row total"><span>Total Estimate</span><span>₹${total.toLocaleString()}</span></div>
+    <!-- QUICK STATS STRIP -->
+    <div class="plan-stats-strip">
+      <div class="plan-stat"><div class="plan-stat-val">${duration}</div><div class="plan-stat-lbl">Days</div></div>
+      <div class="plan-stat-div"></div>
+      <div class="plan-stat"><div class="plan-stat-val">${people}</div><div class="plan-stat-lbl">Traveller${people > 1 ? 's' : ''}</div></div>
+      <div class="plan-stat-div"></div>
+      <div class="plan-stat"><div class="plan-stat-val">₹${(total/1000).toFixed(1)}k</div><div class="plan-stat-lbl">Est. Total</div></div>
+      <div class="plan-stat-div"></div>
+      <div class="plan-stat"><div class="plan-stat-val">${foodLabel || '🍽️'}</div><div class="plan-stat-lbl">Food Pref.</div></div>
+    </div>
+
+    <!-- TOP 2-COL GRID -->
+    <div class="plan-grid-2">
+      <!-- Famous Places -->
+      <div class="plan-card">
+        <div class="plan-card-header plan-card-header--teal">
+          <span class="plan-card-icon">🏛️</span>
+          <h4>Famous Places</h4>
+        </div>
+        <ul class="plan-list">
+          ${(plan.famous || []).map((p, i) => `
+          <li class="plan-list-item">
+            <span class="plan-list-num">${i + 1}</span>
+            <span>${p}</span>
+          </li>`).join('')}
+        </ul>
+      </div>
+
+      <!-- Hidden Gems -->
+      <div class="plan-card">
+        <div class="plan-card-header plan-card-header--gold">
+          <span class="plan-card-icon">💎</span>
+          <h4>Hidden Gems</h4>
+        </div>
+        <ul class="plan-list">
+          ${(plan.hidden || []).map((p, i) => `
+          <li class="plan-list-item">
+            <span class="plan-list-gem">✦</span>
+            <span>${p}</span>
+          </li>`).join('')}
+        </ul>
+      </div>
+
+      <!-- Must-Try Food -->
+      <div class="plan-card">
+        <div class="plan-card-header plan-card-header--orange">
+          <span class="plan-card-icon">🍜</span>
+          <h4>Must-Try Food</h4>
+        </div>
+        <div class="plan-food-list">
+          ${(plan.food || []).map(f => `
+          <div class="plan-food-item">
+            <span class="plan-food-name">${f.name}</span>
+            <span class="plan-food-price">${f.price || ''}</span>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <!-- Budget Breakdown -->
+      <div class="plan-card">
+        <div class="plan-card-header plan-card-header--purple">
+          <span class="plan-card-icon">💰</span>
+          <h4>Budget Breakdown</h4>
+        </div>
+        <div class="plan-budget-list">
+          <div class="plan-budget-row">
+            <span class="plan-budget-icon">🏨</span>
+            <div class="plan-budget-bar-wrap">
+              <div class="plan-budget-label-row"><span>Accommodation</span><span class="plan-budget-amt">₹${(plan.budget?.accommodation || 0).toLocaleString()}</span></div>
+              <div class="plan-budget-bar"><div class="plan-budget-fill" style="width:${bPct(plan.budget?.accommodation)}%;background:var(--lc)"></div></div>
+            </div>
+          </div>
+          <div class="plan-budget-row">
+            <span class="plan-budget-icon">🍽️</span>
+            <div class="plan-budget-bar-wrap">
+              <div class="plan-budget-label-row"><span>Food</span><span class="plan-budget-amt">₹${(plan.budget?.food || 0).toLocaleString()}</span></div>
+              <div class="plan-budget-bar"><div class="plan-budget-fill" style="width:${bPct(plan.budget?.food)}%;background:#f59e0b"></div></div>
+            </div>
+          </div>
+          <div class="plan-budget-row">
+            <span class="plan-budget-icon">🚗</span>
+            <div class="plan-budget-bar-wrap">
+              <div class="plan-budget-label-row"><span>Transport</span><span class="plan-budget-amt">₹${(plan.budget?.transport || 0).toLocaleString()}</span></div>
+              <div class="plan-budget-bar"><div class="plan-budget-fill" style="width:${bPct(plan.budget?.transport)}%;background:#8b5cf6"></div></div>
+            </div>
+          </div>
+          <div class="plan-budget-row">
+            <span class="plan-budget-icon">🎭</span>
+            <div class="plan-budget-bar-wrap">
+              <div class="plan-budget-label-row"><span>Activities</span><span class="plan-budget-amt">₹${(plan.budget?.activities || 0).toLocaleString()}</span></div>
+              <div class="plan-budget-bar"><div class="plan-budget-fill" style="width:${bPct(plan.budget?.activities)}%;background:#ec4899"></div></div>
+            </div>
+          </div>
+          <div class="plan-budget-total">
+            <span>Total Estimate</span>
+            <span>₹${total.toLocaleString()}</span>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="result-card result-card-full"><h4>📅 Day-by-Day Itinerary</h4>
-      ${(plan.day_plan || []).map(d => `
-        <div class="day-plan-item">
-          <strong>Day ${d.day}${d.title ? ` — ${d.title}` : ''}</strong>
-          <p>🌅 ${d.morning}<br>☀️ ${d.afternoon}<br>🌙 ${d.evening}${d.food ? `<br>🍴 ${d.food}` : ''}</p>
+
+    <!-- DAY-BY-DAY ITINERARY -->
+    <div class="plan-card plan-card-full">
+      <div class="plan-card-header plan-card-header--blue">
+        <span class="plan-card-icon">📅</span>
+        <h4>Day-by-Day Itinerary</h4>
+      </div>
+      <div class="plan-days-grid">
+        ${(plan.day_plan || []).map(d => `
+        <div class="plan-day-card">
+          <div class="plan-day-badge">Day ${d.day}</div>
+          <div class="plan-day-title">${d.title || `Day ${d.day} in ${plan.city || destination}`}</div>
+          <div class="plan-day-activities">
+            <div class="plan-day-act"><span class="plan-day-act-dot plan-day-act-dot--morning"></span><div><span class="plan-act-label">Morning</span><p>${d.morning}</p></div></div>
+            <div class="plan-day-act"><span class="plan-day-act-dot plan-day-act-dot--afternoon"></span><div><span class="plan-act-label">Afternoon</span><p>${d.afternoon}</p></div></div>
+            <div class="plan-day-act"><span class="plan-day-act-dot plan-day-act-dot--evening"></span><div><span class="plan-act-label">Evening</span><p>${d.evening}</p></div></div>
+            ${d.food ? `<div class="plan-day-act"><span class="plan-day-act-dot plan-day-act-dot--food"></span><div><span class="plan-act-label">Food</span><p>${d.food}</p></div></div>` : ''}
+          </div>
         </div>`).join('')}
+      </div>
     </div>
-    ${plan.tips ? `<div class="result-card result-card-full"><h4>💡 Local Tips</h4><p style="color:var(--text-muted);font-size:.9rem;line-height:1.7">${plan.tips}</p></div>` : ''}`;
+
+    <!-- LOCAL TIPS -->
+    ${plan.tips ? `
+    <div class="plan-card plan-card-full plan-tips-card">
+      <div class="plan-tips-icon">💡</div>
+      <div>
+        <div class="plan-tips-label">Local Insider Tip</div>
+        <p class="plan-tips-text">${plan.tips}</p>
+      </div>
+    </div>` : ''}`;
 
     document.getElementById('wizFooter').innerHTML = `
       <button class="wiz-btn-back" onclick="wizReset()">← Plan Another</button>
       <span class="wiz-step-count">✦ Plan Generated</span>
-      <button class="wiz-btn-next" onclick="window.print()">📥 Save Plan</button>`;
+      <button class="wiz-btn-next wiz-btn-pdf" onclick="wizDownloadPDF()">📄 Download PDF</button>`;
 
     document.getElementById('wizResultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Store plan data for PDF generation
+    window._lastPlanData = { plan, destination, duration, wizState: { ...wizState }, total, budgetLabel, foodLabel };
+}
+
+function wizDownloadPDF() {
+    const btn = document.querySelector('.wiz-btn-pdf');
+    if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Generating...'; }
+
+    const { plan, destination, duration, total, budgetLabel, foodLabel } = window._lastPlanData || {};
+    const people = wizState.adults + wizState.children;
+    const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const isDark = theme === 'dark';
+
+    const bg = isDark ? '#0a1412' : '#ffffff';
+    const cardBg = isDark ? '#0f1e1b' : '#f8fffe';
+    const cardBorder = isDark ? '#1e3832' : '#d1ede8';
+    const text = isDark ? '#e8f5f2' : '#0f2e28';
+    const textMuted = isDark ? '#7fb8ac' : '#4a8c7e';
+    const accent = '#3a8c7e';
+    const gold = '#c9a84c';
+
+    const style = `
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap');
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'DM Sans', sans-serif; background: ${bg}; color: ${text}; padding: 32px; font-size: 13px; line-height: 1.6; }
+      .header { text-align: center; margin-bottom: 28px; padding: 28px; background: ${cardBg}; border-radius: 16px; border: 1px solid ${cardBorder}; }
+      .header-title { font-size: 28px; font-weight: 700; color: ${accent}; margin-bottom: 6px; }
+      .header-sub { color: ${textMuted}; font-size: 13px; }
+      .stats-strip { display: flex; gap: 12px; margin-bottom: 20px; }
+      .stat-box { flex: 1; background: ${cardBg}; border: 1px solid ${cardBorder}; border-radius: 12px; padding: 14px; text-align: center; }
+      .stat-val { font-size: 20px; font-weight: 700; color: ${accent}; }
+      .stat-lbl { font-size: 10px; color: ${textMuted}; margin-top: 2px; text-transform: uppercase; letter-spacing: .5px; }
+      .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+      .card { background: ${cardBg}; border: 1px solid ${cardBorder}; border-radius: 14px; overflow: hidden; break-inside: avoid; }
+      .card-head { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid ${cardBorder}; }
+      .card-head-icon { font-size: 16px; }
+      .card-head-title { font-size: 13px; font-weight: 700; color: ${accent}; text-transform: uppercase; letter-spacing: .5px; }
+      .card-body { padding: 14px 16px; }
+      ul.plist { list-style: none; }
+      ul.plist li { padding: 5px 0; border-bottom: 1px solid ${cardBorder}; display: flex; align-items: center; gap: 8px; font-size: 12px; }
+      ul.plist li:last-child { border-bottom: none; }
+      .num { width: 20px; height: 20px; background: ${accent}; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+      .gem { color: ${gold}; font-size: 11px; flex-shrink: 0; }
+      .food-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid ${cardBorder}; font-size: 12px; }
+      .food-row:last-child { border-bottom: none; }
+      .food-price { color: ${accent}; font-weight: 700; }
+      .bud-row { margin-bottom: 10px; }
+      .bud-label-row { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 12px; }
+      .bud-bar { height: 6px; background: ${isDark ? '#1e3832' : '#e0f0ec'}; border-radius: 3px; overflow: hidden; }
+      .bud-fill { height: 100%; border-radius: 3px; }
+      .bud-total { margin-top: 12px; padding-top: 10px; border-top: 1px solid ${cardBorder}; display: flex; justify-content: space-between; font-weight: 700; color: ${accent}; font-size: 14px; }
+      .full-card { grid-column: 1 / -1; }
+      .days-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 14px 16px; }
+      .day-card { background: ${isDark ? '#0a1412' : '#f0fbf8'}; border: 1px solid ${cardBorder}; border-radius: 10px; padding: 12px; break-inside: avoid; }
+      .day-badge { display: inline-block; background: ${accent}; color: #fff; border-radius: 6px; padding: 2px 9px; font-size: 10px; font-weight: 700; margin-bottom: 5px; }
+      .day-title { font-size: 12px; font-weight: 700; color: ${text}; margin-bottom: 8px; }
+      .day-act { display: flex; gap: 7px; margin-bottom: 5px; align-items: flex-start; }
+      .dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+      .dot-m { background: #f59e0b; }
+      .dot-a { background: ${accent}; }
+      .dot-e { background: #8b5cf6; }
+      .dot-f { background: #ec4899; }
+      .act-label { font-size: 9px; font-weight: 700; text-transform: uppercase; color: ${textMuted}; letter-spacing: .4px; display: block; }
+      .act-text { font-size: 11px; color: ${text}; }
+      .tips-card { display: flex; gap: 14px; align-items: flex-start; padding: 16px; background: ${cardBg}; border: 1px solid ${cardBorder}; border-left: 4px solid ${gold}; border-radius: 14px; margin-top: 20px; }
+      .tips-icon { font-size: 22px; flex-shrink: 0; }
+      .tips-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: ${gold}; letter-spacing: .5px; margin-bottom: 4px; }
+      .tips-text { font-size: 12px; color: ${textMuted}; line-height: 1.6; }
+      .footer-note { text-align: center; margin-top: 24px; font-size: 10px; color: ${textMuted}; }
+      @media print { body { padding: 16px; } }
+    `;
+
+    const bPct = (v) => Math.round(((v || 0) / (total || 1)) * 100);
+    const city = plan.city || destination;
+
+    const htmlContent = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><title>${city} Trip Plan</title><style>${style}</style></head><body>
+    <div class="header">
+      <div class="header-title">✦ ${city} Trip Plan</div>
+      <div class="header-sub">${plan.tagline || `Discover the wonders of ${city}`}</div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat-box"><div class="stat-val">${duration}</div><div class="stat-lbl">Days</div></div>
+      <div class="stat-box"><div class="stat-val">${people}</div><div class="stat-lbl">Travellers</div></div>
+      <div class="stat-box"><div class="stat-val">₹${(total/1000).toFixed(1)}k</div><div class="stat-lbl">Est. Budget</div></div>
+      <div class="stat-box"><div class="stat-val">${foodLabel || '🍽️'}</div><div class="stat-lbl">Food Pref</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-head"><span class="card-head-icon">🏛️</span><span class="card-head-title">Famous Places</span></div>
+        <div class="card-body"><ul class="plist">${(plan.famous || []).map((p, i) => `<li><span class="num">${i + 1}</span>${p}</li>`).join('')}</ul></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-head-icon">💎</span><span class="card-head-title">Hidden Gems</span></div>
+        <div class="card-body"><ul class="plist">${(plan.hidden || []).map(p => `<li><span class="gem">✦</span>${p}</li>`).join('')}</ul></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-head-icon">🍜</span><span class="card-head-title">Must-Try Food</span></div>
+        <div class="card-body">${(plan.food || []).map(f => `<div class="food-row"><span>${f.name}</span><span class="food-price">${f.price || ''}</span></div>`).join('')}</div>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-head-icon">💰</span><span class="card-head-title">Budget Breakdown</span></div>
+        <div class="card-body">
+          <div class="bud-row"><div class="bud-label-row"><span>🏨 Accommodation</span><span>₹${(plan.budget?.accommodation || 0).toLocaleString()}</span></div><div class="bud-bar"><div class="bud-fill" style="width:${bPct(plan.budget?.accommodation)}%;background:${accent}"></div></div></div>
+          <div class="bud-row"><div class="bud-label-row"><span>🍽️ Food</span><span>₹${(plan.budget?.food || 0).toLocaleString()}</span></div><div class="bud-bar"><div class="bud-fill" style="width:${bPct(plan.budget?.food)}%;background:#f59e0b"></div></div></div>
+          <div class="bud-row"><div class="bud-label-row"><span>🚗 Transport</span><span>₹${(plan.budget?.transport || 0).toLocaleString()}</span></div><div class="bud-bar"><div class="bud-fill" style="width:${bPct(plan.budget?.transport)}%;background:#8b5cf6"></div></div></div>
+          <div class="bud-row"><div class="bud-label-row"><span>🎭 Activities</span><span>₹${(plan.budget?.activities || 0).toLocaleString()}</span></div><div class="bud-bar"><div class="bud-fill" style="width:${bPct(plan.budget?.activities)}%;background:#ec4899"></div></div></div>
+          <div class="bud-total"><span>Total Estimate</span><span>₹${total.toLocaleString()}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card full-card">
+      <div class="card-head"><span class="card-head-icon">📅</span><span class="card-head-title">Day-by-Day Itinerary</span></div>
+      <div class="days-grid">
+        ${(plan.day_plan || []).map(d => `
+        <div class="day-card">
+          <div class="day-badge">Day ${d.day}</div>
+          <div class="day-title">${d.title || `Day ${d.day} in ${city}`}</div>
+          <div class="day-act"><span class="dot dot-m"></span><div><span class="act-label">Morning</span><span class="act-text">${d.morning}</span></div></div>
+          <div class="day-act"><span class="dot dot-a"></span><div><span class="act-label">Afternoon</span><span class="act-text">${d.afternoon}</span></div></div>
+          <div class="day-act"><span class="dot dot-e"></span><div><span class="act-label">Evening</span><span class="act-text">${d.evening}</span></div></div>
+          ${d.food ? `<div class="day-act"><span class="dot dot-f"></span><div><span class="act-label">Food</span><span class="act-text">${d.food}</span></div></div>` : ''}
+        </div>`).join('')}
+      </div>
+    </div>
+    ${plan.tips ? `<div class="tips-card"><span class="tips-icon">💡</span><div><div class="tips-label">Local Insider Tip</div><p class="tips-text">${plan.tips}</p></div></div>` : ''}
+    <div class="footer-note">Generated by Plan Your Trip India · planyyourtripindia.com</div>
+    </body></html>`;
+
+    const printWin = window.open('', '_blank', 'width=900,height=700');
+    if (!printWin) {
+        showToast('Please allow pop-ups to download PDF', 'error');
+        if (btn) { btn.disabled = false; btn.innerHTML = '📄 Download PDF'; }
+        return;
+    }
+    printWin.document.write(htmlContent);
+    printWin.document.close();
+    printWin.onload = () => {
+        setTimeout(() => {
+            printWin.print();
+            printWin.close();
+            if (btn) { btn.disabled = false; btn.innerHTML = '📄 Download PDF'; }
+        }, 500);
+    };
 }
 
 function wizReset() {
