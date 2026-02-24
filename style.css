@@ -2430,6 +2430,56 @@ input:-webkit-autofill:focus {
   color: var(--text-dim);
 }
 
+/* ── FOOD PREFERENCE ── */
+.wiz-food-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .7rem;
+  margin-bottom: 1.25rem;
+}
+
+.wiz-food-card {
+  padding: 1.2rem .8rem;
+  background: var(--bg-2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .25s ease;
+}
+
+.wiz-food-card:hover {
+  border-color: var(--lc-border);
+  transform: translateY(-2px);
+}
+
+.wiz-food-card.selected {
+  border-color: var(--lc);
+  background: var(--lc-dim);
+}
+
+.wiz-food-icon {
+  font-size: 2rem;
+  margin-bottom: .5rem;
+}
+
+.wiz-food-title {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: .3rem;
+}
+
+.wiz-food-card.selected .wiz-food-title {
+  color: var(--lc);
+}
+
+.wiz-food-desc {
+  font-size: .65rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
 /* ── SUMMARY ── */
 .wiz-summary-grid {
   display: grid;
