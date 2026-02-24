@@ -544,7 +544,7 @@ function planThisState() {
 
 // ─── WIZARD STATE ────────────────────────────────────────────────
 let wizCurrentStep = 1;
-const WIZ_TOTAL = 5;
+const WIZ_TOTAL = 6;
 const wizState = {
     destination: '',
     dateFrom: '',
@@ -554,7 +554,9 @@ const wizState = {
     adults: 2,
     children: 0,
     budget: 'normal',
-    accom: ['Resort']
+    accom: ['Resort'],
+    food: '',
+    diet: []
 };
 
 function wizNextStep() {
@@ -671,6 +673,10 @@ function wizToggleChip(el, group) {
         wizState.styles = el.classList.contains('selected')
             ? [...new Set([...wizState.styles, name])]
             : wizState.styles.filter(s => s !== name);
+    } else if (group === 'diet') {
+        wizState.diet = el.classList.contains('selected')
+            ? [...new Set([...wizState.diet, name])]
+            : wizState.diet.filter(s => s !== name);
     } else {
         wizState.accom = el.classList.contains('selected')
             ? [...new Set([...wizState.accom, name])]
@@ -696,6 +702,12 @@ function wizSelectBudget(el, val) {
     wizState.budget = val;
 }
 
+function wizSelectFood(el, val) {
+    document.querySelectorAll('.wiz-food-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    wizState.food = val;
+}
+
 function wizPopulateSummary() {
     document.getElementById('wizSumDest').textContent = wizState.destination || '—';
     document.getElementById('wizSumDuration').textContent = wizState.duration
@@ -707,6 +719,10 @@ function wizPopulateSummary() {
     const bl = { budget: '🎒 Budget (₹5k–₹15k)', normal: '✈️ Mid-Range (₹15k–₹40k)', luxury: '👑 Luxury (₹40k+)' };
     document.getElementById('wizSumBudget').textContent = bl[wizState.budget] || '—';
     document.getElementById('wizSumStyle').textContent = wizState.styles.length ? wizState.styles.join(' · ') : 'Not specified';
+    const foodLabels = { veg: '🥗 Vegetarian', nonveg: '🍗 Non-Vegetarian', both: '🍱 Both / No Preference' };
+    let foodText = foodLabels[wizState.food] || '—';
+    if (wizState.diet && wizState.diet.length) foodText += ' · ' + wizState.diet.join(', ');
+    document.getElementById('wizSumFood').textContent = foodText;
 }
 
 async function wizGeneratePlan() {
@@ -718,15 +734,17 @@ async function wizGeneratePlan() {
     const dest = wizState.destination;
     const dur = wizState.duration || 5;
     const style = wizState.styles.join(', ') || 'cultural';
+    const foodPref = wizState.food === 'veg' ? 'Vegetarian only' : wizState.food === 'nonveg' ? 'Non-Vegetarian' : 'Both veg and non-veg';
+    const dietExtra = wizState.diet && wizState.diet.length ? `, special needs: ${wizState.diet.join(', ')}` : '';
 
     // Check if known city
     const cityKey = Object.keys(CITY_DATA).find(k => dest.toLowerCase().includes(k));
     const cityData = cityKey ? CITY_DATA[cityKey] : null;
 
     try {
-        const prompt = `Create a ${dur}-day travel itinerary for ${dest}, India for ${wizState.adults + wizState.children} traveler(s). Budget: ${wizState.budget}. Style: ${style}.
+        const prompt = `Create a ${dur}-day travel itinerary for ${dest}, India for ${wizState.adults + wizState.children} traveler(s). Budget: ${wizState.budget}. Style: ${style}. Food preference: ${foodPref}${dietExtra}.
 Respond ONLY with valid JSON:
-{"city":"${dest}","tagline":"evocative line","famous":["place1","place2","place3","place4","place5"],"hidden":["gem1","gem2","gem3","gem4"],"food":[{"name":"dish","price":"₹XX"},{"name":"dish","price":"₹XX"},{"name":"dish","price":"₹XX"}],"day_plan":[{"day":1,"title":"title","morning":"activity","afternoon":"activity","evening":"activity","food":"food tip"}],"budget":{"accommodation":XXXX,"food":XXXX,"transport":XXXX,"activities":XXXX},"tips":"one practical tip"}
+{"city":"${dest}","tagline":"evocative line","famous":["place1","place2","place3","place4","place5"],"hidden":["gem1","gem2","gem3","gem4"],"food":[{"name":"dish","price":"₹XX"},{"name":"dish","price":"₹XX"},{"name":"dish","price":"₹XX"}],"day_plan":[{"day":1,"title":"title","morning":"activity","afternoon":"activity","evening":"activity","food":"food tip based on ${foodPref}"}],"budget":{"accommodation":XXXX,"food":XXXX,"transport":XXXX,"activities":XXXX},"tips":"one practical tip"}
 Generate all ${dur} days. Budget numbers per person total in INR.`;
 
         const response = await callClaudeAI([{ role: 'user', content: prompt }]);
