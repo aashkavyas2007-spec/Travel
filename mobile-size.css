@@ -1,0 +1,324 @@
+/* ================================================================
+   MOBILE FIX PATCH — mobile-fix.css
+   Add AFTER mobile.css:  <link rel="stylesheet" href="mobile-fix.css" />
+   ================================================================ */
+
+/* ── WHEN CITY PAGE IS OPEN: HIDE NAVBAR COMPLETELY ─────────── */
+body.city-page-open #navbar {
+    display: none !important;
+}
+
+body.city-page-open {
+    padding-top: 0 !important;
+    overflow: hidden !important;
+}
+
+/* ── CITY PAGE: FULLSCREEN FIXED OVERLAY ─────────────────────── */
+#cityPage {
+    display: none;
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 2000 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    background: var(--bg, #0f0c1a) !important;
+}
+
+#cityPage.active {
+    display: block !important;
+}
+
+@media (max-width: 768px) {
+
+    /* ── CITY HERO ───────────────────────────────────────────────── */
+    .city-hero {
+        height: 62vw !important;
+        min-height: 260px !important;
+        max-height: 380px !important;
+    }
+
+    .city-hero-content {
+        padding-top: calc(env(safe-area-inset-top, 0px) + 4rem) !important;
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+        padding-bottom: 1.25rem !important;
+        justify-content: flex-end !important;
+    }
+
+    /* ── BACK BUTTON — fixed pill, top-left ──────────────────────── */
+    .city-back-btn {
+        position: fixed !important;
+        top: calc(env(safe-area-inset-top, 0px) + 0.65rem) !important;
+        left: 1rem !important;
+        z-index: 2100 !important;
+        min-height: 44px !important;
+        padding: 0 1.1rem !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        font-family: inherit !important;
+        border-radius: 22px !important;
+        background: rgba(10, 8, 20, 0.78) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.22) !important;
+        color: #ffffff !important;
+        cursor: pointer !important;
+        touch-action: manipulation !important;
+        -webkit-tap-highlight-color: transparent !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.35rem !important;
+        white-space: nowrap !important;
+        text-decoration: none !important;
+        transition: background 0.15s, border-color 0.15s !important;
+    }
+
+    .city-back-btn:active {
+        background: rgba(254, 250, 205, 0.2) !important;
+        border-color: rgba(254, 250, 205, 0.55) !important;
+    }
+
+    /* ── CITY TEXT SIZES ─────────────────────────────────────────── */
+    .city-hero-title {
+        font-size: clamp(1.6rem, 7vw, 2.8rem) !important;
+        line-height: 1.05 !important;
+        margin-bottom: 0.2rem !important;
+        color: #fff !important;
+    }
+
+    .city-hero-tagline {
+        font-size: 0.78rem !important;
+        margin-bottom: 0.65rem !important;
+    }
+
+    .city-plan-btn {
+        font-size: 0.82rem !important;
+        min-height: 46px !important;
+        padding: 0 1.1rem !important;
+        border-radius: 12px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        touch-action: manipulation !important;
+        -webkit-tap-highlight-color: transparent !important;
+        cursor: pointer !important;
+    }
+
+    /* ── CITY TABS ───────────────────────────────────────────────── */
+    .city-tabs {
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 10 !important;
+        display: flex !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+        padding: 0 0.75rem !important;
+        background: var(--bg, #0f0c1a) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .city-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .city-tab {
+        flex-shrink: 0 !important;
+        min-height: 48px !important;
+        padding: 0.5rem 1rem !important;
+        font-size: 0.8rem !important;
+        white-space: nowrap !important;
+        border: none !important;
+        border-bottom: 2px solid transparent !important;
+        background: none !important;
+        border-radius: 0 !important;
+        touch-action: manipulation !important;
+        -webkit-tap-highlight-color: transparent !important;
+        cursor: pointer !important;
+        color: inherit !important;
+        font-family: inherit !important;
+    }
+
+    .city-tab.active {
+        border-bottom-color: var(--lc, #fefacd) !important;
+        color: var(--lc, #fefacd) !important;
+    }
+
+    /* ── CITY INFO CARDS ─────────────────────────────────────────── */
+    .city-cards-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.65rem !important;
+    }
+
+    .city-info-card {
+        padding: 0.9rem !important;
+        border-radius: 14px !important;
+        touch-action: manipulation !important;
+    }
+
+    .city-info-card h4 {
+        font-size: 0.85rem !important;
+    }
+
+    .city-info-card p {
+        font-size: 0.72rem !important;
+    }
+
+    /* ── PLACE CARDS — proper touch & sizing ─────────────────────── */
+    .places-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.75rem !important;
+        padding: 0 1.25rem !important;
+    }
+
+    .place-card {
+        border-radius: 16px !important;
+        overflow: hidden !important;
+        cursor: pointer !important;
+        touch-action: manipulation !important;
+        -webkit-tap-highlight-color: transparent !important;
+        user-select: none !important;
+        -webkit-user-select: none !important;
+        display: block !important;
+        transition: transform 0.12s ease !important;
+    }
+
+    .place-card:active {
+        transform: scale(0.97) !important;
+    }
+
+    .place-img-wrap {
+        height: 130px !important;
+        position: relative !important;
+        overflow: hidden !important;
+        display: block !important;
+    }
+
+    .place-img-wrap img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        display: block !important;
+        pointer-events: none !important;
+    }
+
+    .place-hover-cta {
+        opacity: 1 !important;
+        transform: none !important;
+        position: absolute !important;
+        bottom: 0.5rem !important;
+        right: 0.5rem !important;
+        background: rgba(10, 8, 20, 0.65) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        color: #fff !important;
+        font-size: 0.65rem !important;
+        font-weight: 600 !important;
+        padding: 0.25rem 0.6rem !important;
+        border-radius: 20px !important;
+        pointer-events: none !important;
+        z-index: 2 !important;
+    }
+
+    .place-info {
+        padding: 0.6rem 0.75rem 0.75rem !important;
+    }
+
+    .place-info h3 {
+        font-size: 0.9rem !important;
+        margin-bottom: 0.1rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .place-info p {
+        font-size: 0.7rem !important;
+        line-height: 1.4 !important;
+        opacity: 0.72 !important;
+        margin: 0 !important;
+    }
+
+    /* ── ALL INTERACTIVE ELEMENTS ────────────────────────────────── */
+    .wiz-chip,
+    .wiz-budget-card,
+    .wiz-count-btn,
+    .map-hint-chips span,
+    .chat-suggestions button,
+    .social-btn,
+    .chatbot-btn,
+    .chat-close,
+    .chat-send,
+    .auth-submit,
+    .auth-social-btn,
+    .auth-close,
+    .auth-pw-toggle,
+    .btn-nav-login,
+    .btn-nav-signup,
+    .btn-primary,
+    .btn-ghost,
+    .wiz-btn-back,
+    .wiz-btn-next,
+    .wiz-loc-btn,
+    .btn-map-chat,
+    .btn-map-plan,
+    .hamburger,
+    .btn-theme-toggle {
+        touch-action: manipulation !important;
+        -webkit-tap-highlight-color: transparent !important;
+        cursor: pointer !important;
+    }
+
+    .wiz-chip {
+        min-height: 40px !important;
+    }
+
+    .wiz-count-btn {
+        min-width: 44px !important;
+        min-height: 44px !important;
+    }
+
+    .map-hint-chips span {
+        min-height: 36px !important;
+    }
+
+    /* Prevent background scroll when city page open */
+    body.city-page-open #mainContent {
+        pointer-events: none !important;
+    }
+}
+
+/* ── EXTRA SMALL ≤ 390px ─────────────────────────────────────── */
+@media (max-width: 390px) {
+    .places-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .city-cards-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .place-img-wrap {
+        height: 170px !important;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .footer-cols-wrap {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ── TABLET 480–768 ──────────────────────────────────────────── */
+@media (min-width: 480px) and (max-width: 768px) {
+    .places-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    .place-img-wrap {
+        height: 150px !important;
+    }
+}
