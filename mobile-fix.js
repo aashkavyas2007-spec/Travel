@@ -1,142 +1,87 @@
 /* ================================================================
    MOBILE FIX PATCH — mobile-fix.js
-   Add AFTER script.js:  <script src="mobile-fix.js"></script>
+   Add AFTER script.js: <script src="mobile-fix.js"></script>
+
+   Strategy: WRAPS the existing openCityPage / closeCityPage from
+   script.js WITHOUT replacing their core logic.
+   Only adds/removes body.city-page-open for CSS nav hiding.
+   Does NOT touch mainContent.style.display at all.
    ================================================================ */
 
 (function () {
-    'use strict';
+  'use strict';
 
-    /* ── openCityPage: hide navbar, show city page fullscreen ────── */
-    function patchOpenCityPage() {
-        const orig = window.openCityPage;
+  /* ── Run after DOM + script.js are ready ───────────────────── */
+  function init() {
 
-        window.openCityPage = function (cityId) {
-            // 1. Run the original function (fills cards/titles/etc)
-            if (typeof orig === 'function') orig.call(this, cityId);
+    /* 1. Wrap openCityPage — original does all the work,
+          we just add the body class so CSS hides navbar */
+    var _origOpen = window.openCityPage;
+    window.openCityPage = function (cityId) {
 
-            // 2. Inject hero image
-            if (window.CITY_HERO_IMAGES) {
-                const imgData = window.CITY_HERO_IMAGES[cityId] || { src: '', alt: cityId };
-                const el = document.getElementById('cityHeroImg');
-                if (el) {
-                    el.src = imgData.src;
-                    el.alt = imgData.alt;
-                    el.style.display = imgData.src ? 'block' : 'none';
-                }
-            }
+      // Run original function (shows cityPage, hides mainContent)
+      if (typeof _origOpen === 'function') _origOpen.call(this, cityId);
 
-            // 3. Show city page via .active (CSS handles display:block)
-            const cityPage = document.getElementById('cityPage');
-            if (cityPage) {
-                cityPage.removeAttribute('style');   // remove inline display:none
-                cityPage.classList.add('active');
-                cityPage.scrollTop = 0;
-            }
-
-            // 4. Add body class → CSS hides #navbar, removes padding
-            document.body.classList.add('city-page-open');
-
-            // 5. Fix back button text & handler
-            const backBtn = cityPage ? cityPage.querySelector('.city-back-btn') : null;
-            if (backBtn) {
-                backBtn.innerHTML = '← Home';
-                backBtn.onclick = function (e) {
-                    e.preventDefault();
-                    closeCityPageMobile();
-                };
-            }
-
-            // 6. Wire city tabs (in case original didn't)
-            wireCityTabs();
-        };
-    }
-
-    /* ── closeCityPage: restore navbar ──────────────────────────── */
-    function closeCityPageMobile() {
-        const cityPage = document.getElementById('cityPage');
-        if (cityPage) {
-            cityPage.classList.remove('active');
-            cityPage.style.display = 'none';
+      // Inject hero image if map exists
+      if (window.CITY_HERO_IMAGES) {
+        var imgData = window.CITY_HERO_IMAGES[cityId] || { src: '', alt: cityId };
+        var imgEl = document.getElementById('cityHeroImg');
+        if (imgEl) {
+          imgEl.src = imgData.src;
+          imgEl.alt = imgData.alt;
+          imgEl.style.display = imgData.src ? 'block' : 'none';
         }
-        document.body.classList.remove('city-page-open');
-        document.body.style.overflow = '';
+      }
 
-        // Also call original closeCityPage if it exists
-        if (typeof window._origCloseCityPage === 'function') {
-            window._origCloseCityPage();
-        }
-    }
+      // Add class so CSS hides navbar on mobile
+      document.body.classList.add('city-page-open');
 
-    /* ── Wire city tabs in case original script doesn't ─────────── */
-    function wireCityTabs() {
-        const tabs = document.querySelectorAll('.city-tab');
-        tabs.forEach(function (tab) {
-            tab.addEventListener('click', function () {
-                const target = this.dataset.tab;
-                if (!target) return;
+      // Update back button text
+      var cityPage = document.getElementById('cityPage');
+      var backBtn = cityPage ? cityPage.querySelector('.city-back-btn') : null;
+      if (backBtn) {
+        backBtn.textContent = '← Back';
+      }
+    };
 
-                // Update tab active state
-                tabs.forEach(function (t) { t.classList.remove('active'); });
-                this.classList.add('active');
+    /* 2. Wrap closeCityPage — original restores mainContent,
+          we just remove the body class */
+    var _origClose = window.closeCityPage;
+    window.closeCityPage = function () {
 
-                // Show correct content panel
-                document.querySelectorAll('.city-tab-content').forEach(function (panel) {
-                    panel.classList.remove('active');
-                });
-                const panel = document.getElementById('tab-' + target);
-                if (panel) panel.classList.add('active');
-            });
+      // Run original (hides cityPage, shows mainContent)
+      if (typeof _origClose === 'function') _origClose.call(this);
+
+      // Remove class so navbar reappears on mobile
+      document.body.classList.remove('city-page-open');
+    };
+
+    /* 3. Fix place cards — set pointer-events so the card
+          onclick fires even when children overlap */
+    document.querySelectorAll('.place-card').forEach(function (card) {
+      // Children should not intercept clicks
+      card.querySelectorAll('.place-img-wrap, .place-img-wrap *, .place-info, .place-info *')
+        .forEach(function (child) {
+          child.style.pointerEvents = 'none';
         });
-    }
+      card.style.pointerEvents = 'auto';
+    });
 
-    /* ── Patch closeCityPage too ─────────────────────────────────── */
-    function patchCloseCityPage() {
-        if (typeof window.closeCityPage === 'function') {
-            window._origCloseCityPage = window.closeCityPage;
-        }
-        window.closeCityPage = function () {
-            closeCityPageMobile();
-        };
-    }
+    /* 4. Handle Android/iOS swipe-back / browser back button */
+    window.addEventListener('popstate', function () {
+      if (document.body.classList.contains('city-page-open')) {
+        window.closeCityPage();
+      }
+    });
 
-    /* ── Place card: ensure entire card is tappable ─────────────── */
-    function fixPlaceCards() {
-        document.querySelectorAll('.place-card').forEach(function (card) {
-            // Remove any existing click to prevent double-fire
-            const cityId = card.getAttribute('onclick');
-            if (!cityId) return;
+  } /* end init */
 
-            // Force pointer events on child elements
-            card.querySelectorAll('*').forEach(function (child) {
-                child.style.pointerEvents = 'none';
-            });
-            card.style.pointerEvents = 'auto';
-        });
-    }
-
-    /* ── Init on DOMContentLoaded ────────────────────────────────── */
-    function init() {
-        patchOpenCityPage();
-        patchCloseCityPage();
-        fixPlaceCards();
-        wireCityTabs();
-
-        // Handle Android back gesture / browser back
-        window.addEventListener('popstate', function () {
-            if (document.body.classList.contains('city-page-open')) {
-                closeCityPageMobile();
-            }
-        });
-
-        // Push a state so back button works
-        const origOpen = window.openCityPage;
-        const _ref = origOpen; // keep reference
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
+  /* Run after everything is loaded */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    // DOMContentLoaded already fired (e.g., script at bottom of body)
+    init();
+  }
 
 })();
