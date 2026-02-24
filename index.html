@@ -333,6 +333,10 @@
           </div>
           <div class="wiz-step-item" id="wizStep5">
             <div class="wiz-step-circle">5</div>
+            <div class="wiz-step-label">Food</div>
+          </div>
+          <div class="wiz-step-item" id="wizStep6">
+            <div class="wiz-step-circle">6</div>
             <div class="wiz-step-label">Review</div>
           </div>
         </div>
@@ -483,8 +487,42 @@
           </div>
         </div>
 
-        <!-- ── STEP 5: REVIEW ── -->
+        <!-- ── STEP 5: FOOD PREFERENCE ── -->
         <div class="wiz-panel" id="wizPanel5">
+          <div class="wiz-question">What's your food preference? 🍽️</div>
+          <div class="wiz-hint">Choose your dining style — we'll tailor food recommendations accordingly</div>
+
+          <div class="wiz-food-grid">
+            <div class="wiz-food-card" id="wizFood1" onclick="wizSelectFood(this,'veg')">
+              <div class="wiz-food-icon">🥗</div>
+              <div class="wiz-food-title">Vegetarian</div>
+              <div class="wiz-food-desc">Pure veg meals, dal, sabzi, paneer & more</div>
+            </div>
+            <div class="wiz-food-card" id="wizFood2" onclick="wizSelectFood(this,'nonveg')">
+              <div class="wiz-food-icon">🍗</div>
+              <div class="wiz-food-title">Non-Vegetarian</div>
+              <div class="wiz-food-desc">Chicken, mutton, seafood & regional meat dishes</div>
+            </div>
+            <div class="wiz-food-card" id="wizFood3" onclick="wizSelectFood(this,'both')">
+              <div class="wiz-food-icon">🍱</div>
+              <div class="wiz-food-title">Both / No Preference</div>
+              <div class="wiz-food-desc">Open to everything — veg & non-veg alike</div>
+            </div>
+          </div>
+
+          <div class="wiz-chips-label" style="margin-top:1rem">Special Dietary Needs</div>
+          <div class="wiz-chips-wrap">
+            <div class="wiz-chip" onclick="wizToggleChip(this,'diet')">🌾 Gluten-Free</div>
+            <div class="wiz-chip" onclick="wizToggleChip(this,'diet')">🥛 Dairy-Free</div>
+            <div class="wiz-chip" onclick="wizToggleChip(this,'diet')">🌿 Jain Food</div>
+            <div class="wiz-chip" onclick="wizToggleChip(this,'diet')">🧂 Low Spice</div>
+            <div class="wiz-chip" onclick="wizToggleChip(this,'diet')">🔥 Love Spicy</div>
+            <div class="wiz-chip" onclick="wizToggleChip(this,'diet')">🍜 Street Food Fan</div>
+          </div>
+        </div>
+
+        <!-- ── STEP 6: REVIEW ── -->
+        <div class="wiz-panel" id="wizPanel6">
           <div class="wiz-question">Your Trip at a Glance</div>
           <div class="wiz-hint">Review before we generate your personalised itinerary</div>
 
@@ -514,6 +552,11 @@
               <div class="wiz-s-label">Travel Style</div>
               <div class="wiz-s-value" id="wizSumStyle" style="font-size:.82rem;font-weight:400">—</div>
             </div>
+            <div class="wiz-summary-item" style="grid-column:1/-1">
+              <div class="wiz-s-icon">🍽️</div>
+              <div class="wiz-s-label">Food Preference</div>
+              <div class="wiz-s-value" id="wizSumFood" style="font-size:.82rem;font-weight:400">—</div>
+            </div>
           </div>
         </div>
 
@@ -530,7 +573,7 @@
         <!-- FOOTER NAV -->
         <div class="wiz-footer" id="wizFooter">
           <button class="wiz-btn-back" id="wizBackBtn" onclick="wizPrevStep()" disabled>← Back</button>
-          <span class="wiz-step-count" id="wizStepCount">Step 1 of 5</span>
+          <span class="wiz-step-count" id="wizStepCount">Step 1 of 6</span>
           <button class="wiz-btn-next" id="wizNextBtn" onclick="wizNextStep()">
             <span id="wizNextBtnText">Continue</span> →
           </button>
